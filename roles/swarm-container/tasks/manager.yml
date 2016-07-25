@@ -1,0 +1,24 @@
+---
+- name: Run Swarm Manager
+  docker_container:
+   name: swarm-manager
+   image: swarm
+   command: 
+     - manage 
+     - --host=:3376 
+     - --advertise={{ ansible_default_ipv4.address }}:3376 
+     - --tlsverify
+     - --tlscacert=/etc/certs/ca.pem 
+     - --tlscert=/etc/certs/cert.pem 
+     - --tlskey=/etc/certs/key.pem 
+     - --discovery-opt=kv.cacertfile=/etc/certs/ca.pem 
+     - --discovery-opt=kv.certfile=/etc/certs/cert.pem 
+     - --discovery-opt=kv.keyfile=/etc/certs/key.pem 
+     - consul://{{ ansible_fqdn }}:8501
+   state: started
+   exposed: 
+     - 3376
+   published_ports:
+     - "3376:3376"
+   volumes:
+     - "/etc/certs:/etc/certs:ro"

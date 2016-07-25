@@ -1,0 +1,19 @@
+---
+- name: Swarm Manager
+  include: manager.yml
+  when: "'swarm_manager' in group_names"
+
+- name: Swarm Client Container
+  docker_container:
+    name: swarm
+    image: swarm
+    command:
+     - join
+     - --addr={{ ansible_fqdn }}:2376
+     - --discovery-opt=kv.cacertfile=/etc/certs/ca.pem
+     - --discovery-opt=kv.certfile=/etc/certs/cert.pem
+     - --discovery-opt=kv.keyfile=/etc/certs/key.pem
+     - consul://{{ ansible_fqdn }}:8501
+    state: started
+    volumes:
+       - "/etc/certs:/etc/certs:ro"

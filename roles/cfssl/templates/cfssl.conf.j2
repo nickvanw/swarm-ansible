@@ -1,0 +1,8 @@
+description "Cloudflare CA Service"
+author "Nicholas Van Wiggeren"
+
+start on runlevel [2345]
+
+chdir {{ cfssl_conf_path }}
+
+exec {{ cfssl_install_path }}/cfssl serve -ca-key ca-key.pem -ca ca.pem -config config_ca.json -address 0.0.0.0

@@ -1,0 +1,5 @@
+---
+# Certificate Settings
+cert_path: /etc/certs
+ca_names: [{C: US, L: New York, O: Swarm CA, OU: CA Division, ST: New York}]
+ca_key: { algo: rsa, size: 4096 }

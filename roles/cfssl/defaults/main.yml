@@ -1,0 +1,16 @@
+---
+cfssl_base_url: https://pkg.cfssl.org/R1.2/
+cfssl_install_path: /usr/local/bin/cfssl
+cfssl_conf_path: /etc/cfssl
+cfssl_binaries: [ "cfssl", "cfssljson" ]
+
+# CA Stuff
+ca_cn: Swarm CA
+ca_key: { algo: rsa, size: 4096 }
+ca_names: [{C: US, L: New York, O: Swarm CA, OU: CA Division, ST: New York}]
+
+# CA Policy
+# I highly recommend you change the auth password!
+swarm_auth: "0001020304050607"
+ca_signing: { default: { auth_key: swarm_auth, expiry: 8760h, usages: [signing, key encipherment, server auth, client auth] } }
+auth_key: { swarm_auth: { key: "{{ swarm_auth }}", type: standard } }

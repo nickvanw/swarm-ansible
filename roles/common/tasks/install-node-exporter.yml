@@ -1,0 +1,26 @@
+---
+# file: tasks/install-node-exporter.yml
+#
+# Install Prometheus node-exporter.
+#
+# @see http://prometheus.io/docs/introduction/getting_started/
+#
+- block:
+    - name: set internal variables for convenience
+      set_fact:
+        prometheus_node_exporter_tarball_url: "https://github.com/prometheus/node_exporter/releases/download/0.11.0/node_exporter-0.11.0.linux-amd64.tar.gz"
+
+    - name: download and untar node_exporter tarball
+      unarchive:
+        src: "{{ prometheus_node_exporter_tarball_url }}"
+        dest: "/usr/bin"
+        copy: no
+
+- name: copy INIT script to server
+  template: src="../templates/node_exporter.conf"  dest="/etc/init/node_exporter.conf"
+
+- name: set INIT status
+  service: name=node_exporter enabled=yes
+
+- name: set INIT status and start
+  service: name=node_exporter state=started

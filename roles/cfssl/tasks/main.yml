@@ -1,0 +1,45 @@
+---
+- name: make cfssl paths
+  file: path="{{ item }}" state=directory mode=0755
+  with_items:
+    - "{{ cfssl_install_path }}"
+    - "{{ cfssl_conf_path }}"
+
+- name: download cfssl binaries
+  shell: curl -o {{ cfssl_install_path }}/{{ item }} {{ cfssl_base_url }}{{ item }}_linux-amd64 && chmod 777 {{ cfssl_install_path }}/{{ item }}
+  args:
+    creates: "{{ cfssl_install_path }}/{{ item }}" 
+  with_items:
+    - "{{ cfssl_binaries }}"
+
+- name: create CA config
+  template: src="../templates/csr_ca.j2" dest="{{ cfssl_conf_path }}/csr_ca.json"
+
+- name: initialize CA
+  shell: "cfssl gencert -initca csr_ca.json | cfssljson -bare ca"
+  args:
+    chdir: "{{ cfssl_conf_path }}"
+    creates: "{{ cfssl_conf_path }}/ca.pem"
+  environment:
+    PATH: "{{ ansible_env.PATH  }}:{{ cfssl_install_path }}"
+
+- name: Configure CA Service
+  template: src="../templates/config_ca.json.j2" dest="{{ cfssl_conf_path }}/config_ca.json"
+
+- name: Create CA Service file
+  template: src="../templates/cfssl.conf.j2" dest="/etc/init/cfssl.conf"
+
+- name: Enable Firewall
+  ufw: state=enabled policy=reject
+
+- name: Enable SSH
+  ufw: rule=allow port=22
+  
+- name: Open CFSSL to Swarm nodes
+  ufw: rule=allow src={{ hostvars[item]["ansible_eth1"]["ipv4"]["address"] }}
+  with_items:
+    - "{{ groups['swarm_nodes'] }}"
+    - "{{ groups['swarm_manager'] }}"
+
+- name: Start CA Service
+  service: name=cfssl state=started

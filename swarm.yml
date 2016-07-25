@@ -1,0 +1,41 @@
+---
+# file: swarm.yml
+- hosts: all
+  tasks: [  ]
+
+- hosts: swarm_admin
+  roles:
+    - cfssl
+
+- hosts: swarm_manager
+  vars_files:
+    - vars/manager.yml
+  roles:
+    - docker-certs
+    - ansible-consul
+
+- hosts: swarm_nodes
+  vars_files:
+    - vars/nodes.yml
+  roles:
+    - docker-certs
+    - ansible-consul
+
+- hosts: swarm_nodes:swarm_manager
+  roles:
+    - role: angstwad.docker_ubuntu
+      docker_opts: >
+        -H unix:///var/run/docker.sock
+        -H tcp://{{ ansible_eth1.ipv4.address }}:2376
+        --tlsverify
+        --tlscacert=/etc/certs/ca.pem
+        --tlscert=/etc/certs/cert.pem
+        --tlskey=/etc/certs/key.pem
+        --cluster-store=consul://{{ ansible_fqdn }}:8501
+        --cluster-advertise=eth1:6969
+        --cluster-store-opt kv.cacertfile=/etc/certs/ca.pem
+        --cluster-store-opt kv.certfile=/etc/certs/cert.pem
+        --cluster-store-opt kv.keyfile=/etc/certs/key.pem
+    - role: swarm-container
+      tags:
+        - swarm-container

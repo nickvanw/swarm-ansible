@@ -1,0 +1,25 @@
+---
+- name: Make Certificate Directory
+  file: path="{{ cert_path }}" state=directory mode=0755
+
+- name: Fetch CA File
+  cfssl_pubkey:
+    cfssl_url: "http://{{ hostvars[groups['swarm_admin'][0]]['ansible_eth1']['ipv4']['address'] }}:8888"
+    ca_key_path: "{{ cert_path  }}/ca.pem"
+
+- name: Provision Docker Certificate
+  cfssl_certificate: 
+    cfssl_url: "http://{{ hostvars[groups['swarm_admin'][0]]['ansible_eth1']['ipv4']['address'] }}:8888" 
+    cert_path: "{{ cert_path }}/cert.pem"
+    key_path: "{{ cert_path }}/key.pem" 
+    hosts: ["{{ ansible_nodename  }}"]
+    common_name: "{{ ansible_nodename }}"
+    names: "{{ ca_names }}"
+    key: "{{ ca_key }}"
+
+- name: Remove 127.0.1.1 from hosts
+  lineinfile:
+    dest: /etc/hosts
+    regexp: '^127\.0\.1\.1'
+    state: absent
+
