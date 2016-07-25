@@ -1,0 +1,3 @@
+---
+consul_join_at_start: true
+consul_servers: ["{{ hostvars[groups['swarm_manager'][0]]['ansible_fqdn'] }}"]
