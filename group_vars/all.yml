@@ -1,27 +1,44 @@
 ---
+# Start up Consul as a Server
 consul_is_server: true
+# Name it after the FQDN of the node
 consul_node_name: "{{ ansible_fqdn }}"
+# Bind to the internal address - eth1 on a DO Droplet
 consul_bind_address: "{{ ansible_eth1.ipv4.address }}"
-consul_cert_file: "/etc/certs/cert.pem"
-consul_key_file: "/etc/certs/key.pem"
-consul_ca_file: "/etc/certs/ca.pem"
+# This is where the docker-certs will put certificates 
+consul_cert_file: "{{ cert_path }}/cert.pem"
+consul_key_file: "{{ cert_path }}/key.pem"
+consul_ca_file: "{{ cert_path }}/ca.pem"
+# We don't want any of that nginx stuff
 consul_install_nginx: false
 consul_install_nginx_config: false
 consul_enable_nginx_config: false
+# Bind to the internal eth1 address
 consul_client_address_bind: true
 consul_client_address: "{{ ansible_eth1.ipv4.address }}"
+# Disable access over http
 consul_port_http: -1
+# Enable HTTPS access over port 8501
 consul_port_https: 8501
+# This should really be part of another file
+# CHANGEME
 consul_encrypt: "X4SYOinf2pTAcAHRhpj7dA=="
+# Listen at the normal docker.sock, as well as the local address
+# verify TLS, look for the certs where docker-certs is going to put them
+# Talk to the consul at our local HTTPS port with our certs
+# Advertise our eth1 address for the shared networking
 docker_opts: >
           -H unix:///var/run/docker.sock
           -H tcp://{{ ansible_eth1.ipv4.address }}:2376
           --tlsverify
-          --tlscacert=/etc/certs/ca.pem
-          --tlscert=/etc/certs/cert.pem
-          --tlskey=/etc/certs/key.pem
+          --tlscacert={{ cert_path }}/ca.pem
+          --tlscert={{ cert_path }}/cert.pem
+          --tlskey={{ cert_path }}/key.pem
           --cluster-store=consul://{{ ansible_fqdn }}:8501
           --cluster-advertise=eth1:6969
-          --cluster-store-opt kv.cacertfile=/etc/certs/ca.pem
-          --cluster-store-opt kv.certfile=/etc/certs/cert.pem
-          --cluster-store-opt kv.keyfile=/etc/certs/key.pem
+          --cluster-store-opt kv.cacertfile={{ cert_path }}/ca.pem
+          --cluster-store-opt kv.certfile={{ cert_path }}/cert.pem
+          --cluster-store-opt kv.keyfile={{ cert_path }}/key.pem
+
+# Make node_exporter not listen on every interface
+node_exporter_listen_address: "{{ ansible_eth1.ipv4.address }}:9100"

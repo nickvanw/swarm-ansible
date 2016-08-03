@@ -1,0 +1,2 @@
+---
+node_exporter_listen_address: ":9100"

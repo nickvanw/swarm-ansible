@@ -1,3 +1,6 @@
 ---
+# Manager node will do consul bootstrap
 consul_bootsrap: true
+# With just itself
+# todo(nick): make this the number of manager nodes
 consul_bootstrap_expect: 1

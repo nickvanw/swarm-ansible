@@ -1,3 +1,5 @@
 ---
+# Join at start
 consul_join_at_start: true
+# Connect to the first admin node
 consul_servers: ["{{ hostvars[groups['swarm_manager'][0]]['ansible_fqdn'] }}"]

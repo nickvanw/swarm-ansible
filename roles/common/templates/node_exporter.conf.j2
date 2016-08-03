@@ -5,4 +5,4 @@ stop on runlevel [!2345]
 
 respawn
 
-exec node_exporter
+exec node_exporter -web.listen-address={{ node_exporter_listen_address }}
